@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "finance_el",
+			"path": "../../finance_el"
+		}
+	],
+	"settings": {}
+}
