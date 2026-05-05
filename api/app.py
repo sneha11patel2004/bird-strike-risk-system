@@ -4,10 +4,8 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, request, jsonify
 
-# 🔥 CREATE APP FIRST
 app = Flask(__name__)
 
-# 🔷 Imports
 from utils.video import extract_frames
 from detection.detect import get_positions
 from behaviour.movement import get_behaviour_sequence, get_density, get_runway_zone
@@ -17,6 +15,9 @@ from prediction.model import predict_risk, explain_risk, risk_score, confidence_
 @app.route("/")
 def home():
     return "Bird Strike Risk API is running"
+
+
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
         if "video" not in request.files:
@@ -27,17 +28,14 @@ def predict():
         if video.filename == "":
             return jsonify({"error": "Empty video file"}), 400
 
-        # Save video
         video_path = "input.mp4"
         video.save(video_path)
 
-        # Extract frames
         frame_files = extract_frames(video_path)
 
         if not frame_files:
             return jsonify({"error": "No frames extracted"}), 400
 
-        # Detection
         frames_positions = []
         for f in frame_files:
             positions = get_positions(f)
@@ -50,7 +48,6 @@ def predict():
         density = get_density(last_frame)
         zone = get_runway_zone(last_frame, 800)
 
-        # Prediction
         risk = predict_risk(bird_count, behaviour, density, zone)
 
         score = risk_score(bird_count, density, zone)
@@ -73,4 +70,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
